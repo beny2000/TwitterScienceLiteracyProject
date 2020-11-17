@@ -1,17 +1,17 @@
 import os
 import cleaner
 import read_config
-#main.py
-#reads using read_config.py config setting if not found ask user for config settings
-#use reader.py to read data from dir, use cleaner.py to clean data,
-# use writer.py to write cleaned data to dir.
 
-debug = True
-config_file = 'config.txt'
+########################################
+          #debug var init
+debug = True #False
 raw_data_dir = 'raw_data'
 cleaned_data_dir = 'cleaned_data'
+#########################################
+config_file = 'config.csv'
 
 if not debug:
+    # read params from config file
     try:
         raw_data_dir, cleaned_data_dir = (read_config.Config(config_file)).pass_params()
     except Exception as e:
@@ -19,16 +19,13 @@ if not debug:
         cleaned_data_dir = str(input("Enter cleaned data folder: "))
 
 entries = os.listdir(raw_data_dir)
-
-#for thru raw data make cleaner obj with each file run cleaner
 c=0
+#for through raw data dir, run cleaner on each file
 for entry in entries:
-    if c != 3:
-        c+=1
-        continue
     try:
         cleaner_obj = cleaner.Cleaner(entry, 'cleaned-'+entry, cleaned_data_dir, raw_data_dir)
         cleaner_obj.cleaner()
+        c+=1
     except Exception as e:
         print("Error could not clean", entry, e)
 

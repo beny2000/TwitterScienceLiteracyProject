@@ -86,7 +86,7 @@ class Cleaner:
             write_row = row[1] + ',' + row[2] + ',' + row[5] + ',' + row[6] + ',' + row[10] + ',' + row[13] + ',' + row[
                 14] + ',' + row[15] + ',' + self.__text_cleaner(row[17]) + ',' + row[18] + ',' + row[20] + ',' + row[
                             24] + ',' + row[25] + ',' + row[27] + ',' + row[33]
-            print(row[27], self.__remove_nonCanadian(row[27]))
+            #print(row[27], self.__remove_nonCanadian(row[27]))
             if row_count == 0:
 
                 self.__write(write_row, tweet_writer)

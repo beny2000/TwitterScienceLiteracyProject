@@ -17,6 +17,11 @@ if not debug:
     except Exception as e:
         raw_data_dir = str(input("Enter raw data folder: "))
         cleaned_data_dir = str(input("Enter cleaned data folder: "))
+else:
+    cleaner_obj = cleaner.Cleaner('sample.csv', 'cleaned-sample.csv', cleaned_data_dir, raw_data_dir)
+    cleaner_obj.cleaner()
+    print("test complete")
+    exit(0)
 
 entries = os.listdir(raw_data_dir)
 c=0

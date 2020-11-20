@@ -29,7 +29,7 @@ c=0
 for entry in entries:
     try:
         cleaner_obj = cleaner.Cleaner(entry, 'cleaned-'+entry, cleaned_data_dir, raw_data_dir)
-        cleaner_obj.cleaner()
+        print(cleaner_obj.cleaner()[:50])
         c+=1
     except Exception as e:
         print("Error could not clean", entry, e)

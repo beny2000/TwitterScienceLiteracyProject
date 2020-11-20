@@ -7,8 +7,13 @@ class Cities:
 
 
     def __readCities(self):
-        file = open(self.citiesFile, 'r', encoding="utf8")
-        reader = csv.reader(file)
+
+        try:
+            file = open(self.citiesFile, 'r', encoding="utf8")
+            reader = csv.reader(file)
+        except Exception as e:
+            return "Citing readin Error",
+
         cities = ['canada']
         next(reader) #skip header
         for row in reader:

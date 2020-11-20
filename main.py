@@ -4,7 +4,7 @@ import read_config
 
 ########################################
           #debug var init
-debug = True #False
+debug = False
 raw_data_dir = 'raw_data'
 cleaned_data_dir = 'cleaned_data'
 #########################################

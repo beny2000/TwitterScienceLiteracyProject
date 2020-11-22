@@ -6,7 +6,7 @@ import traceback
 class Cleaner:
     counter = 0
 
-    def __init__(self, infile_name, outfile_name, out_dir, in_dir):
+    def __init__(self, infile_name, out_dir):
         '''
         Init Method for Cleaner class
         :param infile_name: name of file to be cleaned
@@ -16,9 +16,8 @@ class Cleaner:
         '''
 
         self.infile_name = infile_name
-        self.outfile_name = outfile_name
+        self.outfile_name = 'cleaned-' + infile_name
         self.out_dir = out_dir
-        self.in_dir = in_dir
 
     def cleaner(self):
         '''
@@ -42,7 +41,7 @@ class Cleaner:
         # todo check if csv
 
         try:
-            raw_data = open(self.in_dir + '/' + self.infile_name, 'r', encoding="utf8", newline='')
+            raw_data = open(self.infile_name, 'r', encoding="utf8", newline='')
             reader = csv.reader(raw_data)
 
             return reader

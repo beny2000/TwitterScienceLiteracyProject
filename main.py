@@ -33,16 +33,17 @@ enter = time()
 line_count = -1
 for entry in entries:
     start = time()
+    rejects = []
     print("Started: ", entry)
     try:
         cleaner_obj = cleaner.Cleaner(entry, 'cleaned-'+entry, cleaned_data_dir, raw_data_dir)
-        rejects, line_count = cleaner_obj.cleaner()
+        rejects, line_count, read_count = cleaner_obj.cleaner()
         c+=1
     except Exception as e:
         print("Error could not clean", entry, e)
     finally:
         end = time()
-        print(entry, " Finished in ", format_time("%H:%M:%S", get_time(end - start)), "Length: ", line_count)
+        print(entry, " Finished in ", format_time("%H:%M:%S", get_time(end - start)), "Length: ", line_count, "Total Rejected: ", len(rejects),"Lines read:", read_count)
 
 compelete = time()
 print(c, 'files cleaned in ', format_time("%H:%M:%S", get_time(enter - compelete)), list(entries))

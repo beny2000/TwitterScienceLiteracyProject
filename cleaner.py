@@ -1,7 +1,7 @@
 import csv
 import re
 import cities
-
+import traceback
 
 class Cleaner:
     counter = 0
@@ -28,7 +28,7 @@ class Cleaner:
         try:
             return self.__data_spooler(self.__csv_reader())
         except Exception as e:
-            return e
+            return "Cleaning Error", e
 
     def sort_tweets(self):
         # return rows sorted by city
@@ -42,12 +42,12 @@ class Cleaner:
         # todo check if csv
 
         try:
-            raw_data = open(self.in_dir + '/' + self.infile_name, 'r', encoding="utf8")
+            raw_data = open(self.in_dir + '/' + self.infile_name, 'r', encoding="utf8", newline='')
             reader = csv.reader(raw_data)
 
             return reader
-        except IOError as e:
-            print(e)
+        except Exception as e:
+            return "Reader Erorr", e
             # return e
 
     def __json_reader(self):
@@ -71,22 +71,29 @@ class Cleaner:
                            encoding="utf8", newline='')
             RT_writer = csv.writer(RT_file, delimiter=',')
         except Exception as e:
-            print(e)
+            return "RT File creation Error", e
         try:
             cleaned_tweets_file = open(self.out_dir + '/' + str(self.counter) + '-' + self.outfile_name, 'w',
                                        encoding="utf8", newline='')
             tweet_writer = csv.writer(cleaned_tweets_file, delimiter=',')
         except Exception as e:
-            print(e)
+            print("File creation Error", e)
+            return "File creation Error", e
         self.counter += 1
         row_count = 0
+        read_count = 0
 
         # reads through file gathers cols to keep, checks tweets againts conditions, writes tweet to approite file
         for row in reader:
-            write_row = row[1] + ',' + row[2] + ',' + row[5] + ',' + row[6] + ',' + row[10] + ',' + row[13] + ',' + row[
-                14] + ',' + row[15] + ',' + self.__text_cleaner(row[17]) + ',' + row[18] + ',' + row[20] + ',' + row[
-                            24] + ',' + row[25] + ',' + row[27] + ',' + row[33]
-            #print(row[27], self.__remove_nonCanadian(row[27]))
+            read_count +=1
+            if len(row)!= 34:
+                #print(len(row),row)
+                continue
+
+            write_row = [row[1], row[2], row[5], row[6], row[10],
+                         row[13], row[14], row[15], self.__text_cleaner(row[17]),
+                         row[18], row[20], row[24], row[25], str(row[27]), row[33]]
+
             if row_count == 0:
 
                 self.__write(write_row, tweet_writer)
@@ -94,19 +101,19 @@ class Cleaner:
                 row_count += 1
             else:
 
-                if row[33] == 'FALSE' and row[10] == 'en' and row[14] != '' and self.__remove_nonCanadian(row[27]):
+                if row[33].lower() == 'false' and row[10] == 'en' and row[14] == '' and self.__remove_nonCanadian(row[27]):
                     # only write non-verified and english and non-RT tweets and canadian tweets to main csv
+                    #write_row.insert(0,'')
                     self.__write(write_row, tweet_writer)
-
                     row_count += 1
-                elif row[33] == 'FALSE' and row[10] == 'en' and self.__remove_nonCanadian(row[27]) and row[14] == '':
+                elif row[33].lower() == 'false' and row[10] == 'en' and self.__remove_nonCanadian(row[27]) and row[14] != '':
                     # only write non-verified and english and RT tweets and canadian tweets to RT csv
                     self.__write(write_row, RT_writer)
                     row_count += 1
                 else:
                     rejects.append(write_row)
-
-        return rejects, row_count
+        #return row_count
+        return rejects, row_count, read_count
 
     def __text_cleaner(self, text):
         """
@@ -125,11 +132,13 @@ class Cleaner:
         Issues/Limitations:
          - cities or provinces/states in other with same name/shot-form as Canada will cause false positive
          - different spellings (such as Montréal for Montreal) or typos will cause false negative
+         - possible solution is use only top x cities in canada or the like, use fuzzy text matching
         """
         canadian_cities = cities.Cities().getCities()
-        text_split = text.replace(' ','').split(',')
-        print(text_split)
-        return any([text.lower() in canadian_cities for text in text_split])
+        text_split = text.replace(' ', '').split(',')
+        c = any([text.lower() in canadian_cities for text in text_split])
+        #print(text_split)
+        return c
 
     def __write(self, row, writer):
         '''
@@ -139,8 +148,7 @@ class Cleaner:
         :return: None
         '''
         try:
-            writer.writerow([row])
+            writer.writerow(row)
         except Exception as e:
-            print(e, ' @ ' + row)
+            return e, ' @ ' + row
 
-        return cities

@@ -1,4 +1,6 @@
 import os
+import sys
+import argparse
 import cleaner
 import read_config
 from time import time
@@ -12,7 +14,24 @@ raw_data_dir = 'raw_data'
 cleaned_data_dir = 'cleaned_data'
 #########################################
 config_file = 'config.csv'
+my_parser = argparse.ArgumentParser(description='Test')
 
+# Add the arguments
+my_parser.add_argument('in_dir',
+                       metavar='in_dir',
+                       type=str,
+                       help='the dir with data to clean')
+my_parser.add_argument('out_dir',
+                       metavar='out_dir',
+                       type=str,
+                       help='the path to list')
+my_parser.add_argument('-d',
+                       '--degbug',
+                       action='store_true',
+                       help='enable the long listing format')
+
+# Execute parse_args()
+args = my_parser.parse_args()
 if not debug:
     # read params from config file
     try:

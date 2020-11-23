@@ -1,12 +1,13 @@
 import csv
 import re
-import cities
-import traceback
+import time
+from scripts import cities
+
 
 class Cleaner:
-    counter = 0
 
-    def __init__(self, infile_name, out_dir):
+
+    def __init__(self, infile_name, out_dir, input_dir="."):
         '''
         Init Method for Cleaner class
         :param infile_name: name of file to be cleaned
@@ -16,8 +17,9 @@ class Cleaner:
         '''
 
         self.infile_name = infile_name
-        self.outfile_name = 'cleaned-' + infile_name
+        self.outfile_name = 'cleaned--' + infile_name
         self.out_dir = out_dir
+        self.input_dir = input_dir
 
     def cleaner(self):
         '''
@@ -25,7 +27,7 @@ class Cleaner:
         :return:
         '''
         try:
-            return self.__data_spooler(self.__csv_reader())
+            return self.__data_spooler(self.__csv_reader(), self.__csv_reader())
         except Exception as e:
             return "Cleaning Error", e
 
@@ -41,7 +43,7 @@ class Cleaner:
         # todo check if csv
 
         try:
-            raw_data = open(self.infile_name, 'r', encoding="utf8", newline='')
+            raw_data = open(self.input_dir+'/'+self.infile_name, 'r', encoding="utf8", newline='')
             reader = csv.reader(raw_data)
 
             return reader
@@ -54,33 +56,57 @@ class Cleaner:
         # return json reader obj
         pass
 
-    def __data_spooler(self, reader):
+    def __data_spooler(self, reader, reader1):
         '''
         Private method that performs cleaning
         :param reader: csv reader of given file
         :return: list of tweets that where rejected, num. of rows written
         '''
+
+        def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd=" "):
+            """
+            Call in a loop to create terminal progress bar
+            @params:
+                iteration   - Required  : current iteration (Int)
+                total       - Required  : total iterations (Int)
+                prefix      - Optional  : prefix string (Str)
+                suffix      - Optional  : suffix string (Str)
+                decimals    - Optional  : positive number of decimals in percent complete (Int)
+                length      - Optional  : character length of bar (Int)
+                fill        - Optional  : bar fill character (Str)
+                printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+            """
+            percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+            filledLength = int(length * iteration // total)
+            bar = fill * filledLength + '-' * (length - filledLength)
+            print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
+            # Print New Line on Complete
+            if iteration == total:
+                print(" ")
+
         rejects = []
         tweet_writer = None
         RT_writer = None
-
+        length_file = len(list(reader1))
+        #print(length_file)
+        #print(self.infile_name,self.outfile_name)
         # create nessary files (cleaned tweets and cleaned retweets
         try:
-            RT_file = open(self.out_dir + '/' + 'RT-' + str(self.counter) + '-' + self.outfile_name, 'w',
+            RT_file = open(self.out_dir + '/' + 'RT-' + self.outfile_name, 'w',
                            encoding="utf8", newline='')
             RT_writer = csv.writer(RT_file, delimiter=',')
         except Exception as e:
             return "RT File creation Error", e
         try:
-            cleaned_tweets_file = open(self.out_dir + '/' + str(self.counter) + '-' + self.outfile_name, 'w',
+            cleaned_tweets_file = open(self.out_dir + '/' + self.outfile_name, 'w',
                                        encoding="utf8", newline='')
             tweet_writer = csv.writer(cleaned_tweets_file, delimiter=',')
         except Exception as e:
             print("File creation Error", e)
             return "File creation Error", e
-        self.counter += 1
         row_count = 0
         read_count = 0
+
 
         # reads through file gathers cols to keep, checks tweets againts conditions, writes tweet to approite file
         for row in reader:
@@ -111,7 +137,9 @@ class Cleaner:
                     row_count += 1
                 else:
                     rejects.append(write_row)
+
         #return row_count
+            printProgressBar(read_count, length_file)
         return rejects, row_count, read_count
 
     def __text_cleaner(self, text):

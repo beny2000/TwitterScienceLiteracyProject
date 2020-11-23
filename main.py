@@ -1,11 +1,12 @@
 import os
 import sys
 import argparse
-import cleaner
-import read_config
 from time import time
 from time import strftime as format_time
 from time import gmtime as get_time
+sys.path.insert(1, os.getcwd()+'\scripts')
+from scripts import cleaner
+from scripts import read_config
 
 ########################################
           #debug var init
@@ -13,29 +14,48 @@ debug = True
 raw_data_dir = 'raw_data'
 cleaned_data_dir = 'cleaned_data'
 #########################################
-config_file = 'config.csv'
+
+rejects = []
+line_count = -1
+read_count = -1
+config_file = 'scripts/config.csv'
 my_parser = argparse.ArgumentParser(description='Data Cleaner Interface')
 
 # Add the arguments
 my_parser.add_argument('input',
-                       metavar='in_dir',
+                       metavar='input',
                        type=str,
-                       help='the dir with data to clean')
+                       help='the file/dir with data to clean')
 my_parser.add_argument('-o',
                        '--out_dir',
                        action='store',
-                       help='the path to output dir')
+                       help='siefy the path to output dir')
 my_parser.add_argument('-d',
                        '--debug',
                        action='store_true',
                        help='run debug mode')
+my_parser.add_argument('-c',
+                       '--config',
+                       action='store_true',
+                       help='read in dir and out dir from config')
 
 # Execute parse_args()
 args = my_parser.parse_args()
+
+if args.out_dir:
+    cleaned_data_dir = args.out_dir
+else:
+    cleaned_data_dir = 'cleaned_dataa'
+
+    try:
+        os.mkdir(cleaned_data_dir)
+    except OSError:
+        print("Creation of the directory %s failed" % cleaned_data_dir)
+    else:
+        print("Successfully created the directory %s " % cleaned_data_dir)
+
 if args.debug:
-    # read params from config file
     start = time()
-    rejects = []
     print("Started: ")
     try:
         cleaner_obj = cleaner.Cleaner('sample.csv', cleaned_data_dir)
@@ -47,19 +67,66 @@ if args.debug:
         print('debug', " Finished in ", format_time("%H:%M:%S", get_time(end - start)), "Length: ", line_count,
               "Total Rejected: ", len(rejects), "Lines read:", read_count)
         exit(0)
-elif #input is only file, mkdir and write to out_dir
-elif #input is dir
-elif #input is 2 dirs (in, out)
-else #flags for conditions
+elif args.config:
+    try:
+        raw_data_dir, cleaned_data_dir = (read_config.Config(config_file)).pass_params()
+    except Exception as e:
+        raw_data_dir = str(input("Enter raw data folder: "))
+        cleaned_data_dir = str(input("Enter cleaned data folder: "))
+    start = time()
+    print("Started: ")
+    try:
+        cleaner_obj = cleaner.Cleaner('sample.csv', cleaned_data_dir)
+        rejects, line_count, read_count = cleaner_obj.cleaner()
+    except Exception as e:
+        print("Error could not clean", 'debug', e)
+    finally:
+        end = time()
+        print('debug', " Finished in ", format_time("%H:%M:%S", get_time(end - start)), "Length: ", line_count,
+              "Total Rejected: ", len(rejects), "Lines read:", read_count)
+elif os.path.isfile(args.input):
+    start = time()
+    print("Started: ", args.input)
+    try:
+        cleaner_obj = cleaner.Cleaner(args.input, cleaned_data_dir)
+        rejects, line_count, read_count = cleaner_obj.cleaner()
+    except Exception as e:
+        print("Error could not clean", 'debug', e)
+    finally:
+        end = time()
+        print(args.input, " Finished in ", format_time("%H:%M:%S", get_time(end - start)), "Length: ", line_count,
+              "Total Rejected: ", len(rejects), "Lines read:", read_count)
+        exit(0)
+elif os.path.isdir(args.input):
+    entries = os.listdir(args.input)
+    c = 0
+    enter = time()
+    for entry in entries:
+        start = time()
+        print("Started: ", entry)
+        try:
+            cleaner_obj = cleaner.Cleaner(entry, cleaned_data_dir, args.input)
+            rejects, line_count, read_count = cleaner_obj.cleaner()
+            #print(cleaner_obj.cleaner())
+            c += 1
+        except Exception as e:
+            print("Error could not clean", entry, e)
+        finally:
+            end = time()
+            print()
+            print(entry, " Finished in ", format_time("%H:%M:%S", get_time(end - start)), "Length: ", line_count,
+                  "Total Rejected: ", len(rejects), "Lines read:", read_count)
+
+    compelete = time()
+    print(c, 'files cleaned in ', format_time("%H:%M:%S", get_time(enter - compelete)), list(entries))
+else:
+    print("Parse Error") #flags for conditions
 
 entries = os.listdir(raw_data_dir)
 c=0
-#for through raw data dir, run cleaner on each file
 enter = time()
-line_count = -1
 for entry in entries:
     start = time()
-    rejects = []
     print("Started: ", entry)
     try:
         cleaner_obj = cleaner.Cleaner('sample.csv', cleaned_data_dir)

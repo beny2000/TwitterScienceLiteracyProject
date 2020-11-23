@@ -1,18 +1,21 @@
 import csv
-
+import os
+import sys
+sys.path.insert(1, os.getcwd()+'\scripts')
 class Cities:
     def __init__(self):
-        self.citiesFile = "canadaCities.csv"
+        self.citiesFile = "canadianCities.csv"
         self.cities = self.__readCities()
 
 
     def __readCities(self):
-
+        #print(os.getcwd())
         try:
-            file = open(self.citiesFile, 'r', encoding="utf8")
+            file = open(os.getcwd()+'\scripts\\'+self.citiesFile, 'r', encoding="utf8")
             reader = csv.reader(file)
         except Exception as e:
-            return "Citing readin Error",
+            print(e)
+            return "City reading Error",
 
         cities = ['canada']
         next(reader) #skip header

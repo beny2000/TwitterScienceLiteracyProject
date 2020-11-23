@@ -1,7 +1,7 @@
 import csv
 import re
 import time
-from scripts import cities
+import cities
 
 
 class Cleaner:
@@ -82,7 +82,8 @@ class Cleaner:
             print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
             # Print New Line on Complete
             if iteration == total:
-                print(" ")
+                print()
+                print()
 
         rejects = []
         tweet_writer = None
@@ -111,6 +112,7 @@ class Cleaner:
         # reads through file gathers cols to keep, checks tweets againts conditions, writes tweet to approite file
         for row in reader:
             read_count +=1
+
             if len(row)!= 34:
                 #print(len(row),row)
                 continue
@@ -125,10 +127,11 @@ class Cleaner:
                 self.__write(write_row, RT_writer)
                 row_count += 1
             else:
-
+                #print(self.__remove_nonCanadian(row[27]))
                 if row[33].lower() == 'false' and row[10] == 'en' and row[14] == '' and self.__remove_nonCanadian(row[27]):
                     # only write non-verified and english and non-RT tweets and canadian tweets to main csv
                     #write_row.insert(0,'')
+                    #print(row)
                     self.__write(write_row, tweet_writer)
                     row_count += 1
                 elif row[33].lower() == 'false' and row[10] == 'en' and self.__remove_nonCanadian(row[27]) and row[14] != '':
@@ -163,8 +166,9 @@ class Cleaner:
         """
         canadian_cities = cities.Cities().getCities()
         text_split = text.replace(' ', '').split(',')
+
         c = any([text.lower() in canadian_cities for text in text_split])
-        #print(text_split)
+        #print([i for i in canadian_cities])
         return c
 
     def __write(self, row, writer):

@@ -1,7 +1,7 @@
 # Twitter Science Literacy Project
 
 ## How to use program
-- Run main.py in termnial with arguments to start program `python main.py args` 
+- Run `main.p` in termnial with arguments to start program, `python main.py args` 
 - main.py takes 1 required argument which is the input file or directory, of the data to clean
   - eg. `$ python main.py input`
 - use `-o output_dir` flag to specify output directory, if not specifyied one is created

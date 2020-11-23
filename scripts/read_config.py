@@ -19,8 +19,7 @@ class Config:
 
             return reader
         except IOError as e:
-            print(e)
-            # return e
+            return "Config file Read Error", e
 
     def pass_params(self):
         '''

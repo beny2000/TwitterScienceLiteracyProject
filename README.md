@@ -1,4 +1,4 @@
-# TwitterScienceLiteracyProject
+# Twitter Science Literacy Project
 
 ## How to use program
 - To run main.py in termnial with arguments to start program `python main.py args` 

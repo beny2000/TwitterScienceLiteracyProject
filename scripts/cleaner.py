@@ -2,6 +2,7 @@ import csv
 import re
 import time
 import cities
+import codecs
 
 
 class Cleaner:
@@ -41,13 +42,16 @@ class Cleaner:
         :return: csv reader obj
         '''
         # todo check if csv
-
+        def fix_nulls(s):
+            for line in s:
+                yield line.replace('\0', ' ')
         try:
             raw_data = open(self.input_dir+'/'+self.infile_name, 'r', encoding="utf8", newline='')
-            reader = csv.reader(raw_data)
+            reader = csv.reader(fix_nulls(raw_data))
 
             return reader
         except Exception as e:
+            print("Reader Erorr", e)
             return "Reader Erorr", e
             # return e
 
@@ -88,7 +92,10 @@ class Cleaner:
         rejects = []
         tweet_writer = None
         RT_writer = None
-        length_file = len(list(reader1))
+        try:
+            length_file = len(list(reader1))
+        except Exception as e:
+            print(e,"Error len")
         #print(length_file)
         #print(self.infile_name,self.outfile_name)
         # create nessary files (cleaned tweets and cleaned retweets

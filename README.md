@@ -49,3 +49,4 @@
 ### Todo:
 - try fuzz text macthing for location filter
 - two-step verification for location filter
+- have cleaned data written to single file instead of a new one each time

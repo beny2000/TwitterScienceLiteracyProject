@@ -46,7 +46,6 @@
 - command line interface
 - progress bar
 
-### Todo:
-- try fuzz text macthing for location filter
-- two-step verification for location filter
-- have cleaned data written to single file instead of a new one each time
+## New in v3.0
+- adds cleaned tweets to master file
+- prints list of locations and number of tweets found

@@ -7,7 +7,6 @@ import codecs
 
 class Cleaner:
 
-
     def __init__(self, infile_name, out_dir, input_dir="."):
         '''
         Init Method for Cleaner class
@@ -21,7 +20,7 @@ class Cleaner:
         self.outfile_name = 'cleaned--' + infile_name
         self.out_dir = out_dir
         self.input_dir = input_dir
-
+        self.locations = dict()
     def cleaner(self):
         '''
         Public method that calls nessary methods to clean file
@@ -41,12 +40,14 @@ class Cleaner:
         Creates csv reader for given file
         :return: csv reader obj
         '''
+
         # todo check if csv
         def fix_nulls(s):
             for line in s:
                 yield line.replace('\0', ' ')
+
         try:
-            raw_data = open(self.input_dir+'/'+self.infile_name, 'r', encoding="utf8", newline='')
+            raw_data = open(self.input_dir + '/' + self.infile_name, 'r', encoding="utf8", newline='')
             reader = csv.reader(fix_nulls(raw_data))
 
             return reader
@@ -95,9 +96,9 @@ class Cleaner:
         try:
             length_file = len(list(reader1))
         except Exception as e:
-            print(e,"Error len")
-        #print(length_file)
-        #print(self.infile_name,self.outfile_name)
+            print(e, "Error len")
+        # print(length_file)
+        # print(self.infile_name,self.outfile_name)
         # create nessary files (cleaned tweets and cleaned retweets
         try:
             RT_file = open(self.out_dir + '/' + 'RT-' + self.outfile_name, 'w',
@@ -112,16 +113,30 @@ class Cleaner:
         except Exception as e:
             print("File creation Error", e)
             return "File creation Error", e
+        try:
+            master_tweets = open("master_tweets.csv", 'a', encoding="utf8", newline='')
+            master_tweets_writer = csv.writer(master_tweets, delimiter=',')
+        except Exception as e:
+            print("File creation Error", e)
+            return "File creation Error", e
+        try:
+            master_RT = open("master_RT.csv", 'a', encoding="utf8", newline='')
+            master_RT_writer = csv.writer(master_RT, delimiter=',')
+        except Exception as e:
+            print("File creation Error", e)
+            return "File creation Error", e
+
+
+
         row_count = 0
         read_count = 0
 
-
         # reads through file gathers cols to keep, checks tweets againts conditions, writes tweet to approite file
         for row in reader:
-            read_count +=1
+            read_count += 1
 
-            if len(row)!= 34:
-                #print(len(row),row)
+            if len(row) != 34:
+                # print(len(row),row)
                 continue
 
             write_row = [row[1], row[2], row[5], row[6], row[10],
@@ -134,21 +149,27 @@ class Cleaner:
                 self.__write(write_row, RT_writer)
                 row_count += 1
             else:
-                #print(self.__remove_nonCanadian(row[27]))
-                if row[33].lower() == 'false' and row[10] == 'en' and row[14] == '' and self.__remove_nonCanadian(row[27]):
+                # print(self.__remove_nonCanadian(row[27]))
+                if row[33].lower() == 'false' and row[10] == 'en' and row[14] == '' and self.__remove_nonCanadian(
+                        row[27]):
                     # only write non-verified and english and non-RT tweets and canadian tweets to main csv
-                    #write_row.insert(0,'')
-                    #print(row)
+                    # write_row.insert(0,'')
+                    # print(row)
                     self.__write(write_row, tweet_writer)
+                    self.__write(write_row, master_tweets_writer)
+
                     row_count += 1
-                elif row[33].lower() == 'false' and row[10] == 'en' and self.__remove_nonCanadian(row[27]) and row[14] != '':
+                elif row[33].lower() == 'false' and row[10] == 'en' and self.__remove_nonCanadian(row[27]) and row[
+                    14] != '':
                     # only write non-verified and english and RT tweets and canadian tweets to RT csv
                     self.__write(write_row, RT_writer)
+                    self.__write(write_row, master_RT_writer)
+
                     row_count += 1
                 else:
                     rejects.append(write_row)
 
-        #return row_count
+            # return row_count
             printProgressBar(read_count, length_file)
         return rejects, row_count, read_count
 
@@ -172,10 +193,32 @@ class Cleaner:
          - possible solution is use only top x cities in canada or the like, use fuzzy text matching
         """
         canadian_cities = cities.Cities().getCities()
+        big_cities = {"toronto", "montreal", "vancouver", "ottawa", "halifax", "calgary", "edmonton", "winnipeg"}
+        provinces = {"canada", "ontario", "quebec", "alberta", "manitoba", "saskachewan", "british coloumbia",
+                     "nova scotia", "new brunswick",
+                     "prince edward island", "newfoundland", "northwest territories", "nunavut", "yukon", "on", "qc",
+                     "ab", "bc", "nl", "pe",
+                     "ns", "nb", "mb", "sk", "yt", "nt", "nu"}
         text_split = text.replace(' ', '').split(',')
 
-        c = any([text.lower() in canadian_cities for text in text_split])
-        #print([i for i in canadian_cities])
+        # print(canadian_cities[0])
+        #print(text_split)
+        c = False
+        for text in text_split:
+            if text.lower() in big_cities:  # skip 2nd step verification for any big city
+                try:
+                    self.locations.update({text.lower(): self.locations[text.lower()] + 1})
+                except KeyError:
+                    self.locations.update({text.lower(): 1})
+                return True
+            elif text.lower() in canadian_cities:
+                for text1 in text_split:
+                    if text1 != text and text1.lower() in provinces:  # 2nd step verification for non big cities
+                        try:
+                            self.locations.update({text.lower(): self.locations[text.lower()] + 1})
+                        except KeyError:
+                            self.locations.update({text.lower(): 1})
+                        c = True
         return c
 
     def __write(self, row, writer):
@@ -190,3 +233,7 @@ class Cleaner:
         except Exception as e:
             return e, ' @ ' + row
 
+    def get_locations(self):
+        print("Locations Found")
+        for key in self.locations:
+            print(key,": ",self.locations[key])

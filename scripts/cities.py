@@ -17,7 +17,7 @@ class Cities:
             print(e)
             return "City reading Error",
 
-        cities = ['canada']
+        cities = []
         next(reader) #skip header
         for row in reader:
             cities.extend(row)

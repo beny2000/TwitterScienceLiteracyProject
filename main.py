@@ -39,6 +39,10 @@ my_parser.add_argument('-c',
                        '--config',
                        action='store_true',
                        help='read in dir and out dir from config')
+my_parser.add_argument("-a",
+                       "--append",
+                       action='store_true',
+                       help='append cleaned results to master file')
 
 # Execute parse_args()
 args = my_parser.parse_args()
@@ -61,6 +65,7 @@ if args.debug:
     try:
         cleaner_obj = cleaner.Cleaner('sample.csv', cleaned_data_dir, os.getcwd())
         rejects, line_count, read_count = cleaner_obj.cleaner()
+        cleaner_obj.get_locations()
     except Exception as e:
         print("Error could not clean", 'debug', e)
     finally:
@@ -85,7 +90,7 @@ elif args.config:
         try:
             cleaner_obj = cleaner.Cleaner(entry, cleaned_data_dir, raw_data_dir)
             rejects, line_count, read_count = cleaner_obj.cleaner()
-            # print(cleaner_obj.cleaner())
+            cleaner_obj.get_locations()
             c += 1
         except Exception as e:
             print("Error could not clean", entry, e)
@@ -104,6 +109,7 @@ elif os.path.isfile(args.input):
     try:
         cleaner_obj = cleaner.Cleaner(args.input, cleaned_data_dir, os.getcwd())
         rejects, line_count, read_count = cleaner_obj.cleaner()
+        cleaner_obj.get_locations()
     except Exception as e:
         print("Error could not clean", args.input, e)
     finally:
@@ -122,7 +128,7 @@ elif os.path.isdir(args.input):
         try:
             cleaner_obj = cleaner.Cleaner(entry, cleaned_data_dir, args.input)
             rejects, line_count, read_count = cleaner_obj.cleaner()
-            #print(cleaner_obj.cleaner())
+            cleaner_obj.get_locations()
             c += 1
         except Exception as e:
             print("Error could not clean", entry, e)
